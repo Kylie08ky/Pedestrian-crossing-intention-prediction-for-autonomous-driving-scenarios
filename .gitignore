@@ -1,0 +1,15 @@
+# Data
+*/datasets/
+*/cleaned_data/
+*/videos/
+*/results*/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# IDE
+.idea/
+.vscode/
+*.exe
+
