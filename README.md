@@ -25,6 +25,7 @@ The pipeline detects pedestrians in surveillance videos, tracks their movement, 
    - Input: keypoint sequences  
    - Output: pedestrian behavior classification (**cross / not cross**)  
    - Trained LSTM classifier → best checkpoint: `LSTM_seq_best.pth`.
+
 ## Pipeline Diagram
 
 ```mermaid
@@ -59,13 +60,14 @@ flowchart TD
 ### LSTM Classification
 - Confusion Matrix
 
-  <img src="3-YOLOv8Pose+LSTM predict/figures/confusion_matrix.png" width="500"/>  
+  <img src="3-YOLOv8Pose+LSTM_predict/figures/confusion_matrix.png" width="500"/>  
 - Training & Validation Loss
 
-  <img src="3-YOLOv8Pose+LSTM predict/figures/loss_curve.png" width="500"/>
+  <img src="3-YOLOv8Pose+LSTM_predict/figures/loss_curve.png" width="500"/>
 - Classification Metrics
 
-  <img src="3-YOLOv8Pose+LSTM predict/figures/metrics_bar.png" width="500"/>
+  <img src="3-YOLOv8Pose+LSTM_predict/figures/metrics_bar.png" width="500"/>
+
 ### Example outputs:
 
 - Green-screen with pose keypoints:  
@@ -73,6 +75,7 @@ flowchart TD
 
 - Final behavior classification (crossing):  
   <img src="docs/example_cross.png" width="500"/>  
+
 ---
 
 ##  How to Run
@@ -81,34 +84,82 @@ flowchart TD
 ```bash
 pip install -r requirements.txt
 ```
+
 ### 2. Dataset Preparation
 Place your videos into:
 ```bash
 2-Deepsort_Tracking/datasets/videos/cross/
 2-Deepsort_Tracking/datasets/videos/notcross/
 ```
+
 ### 3. YOLOv8 + DeepSORT Tracking
 The YOLOv8 object detection model was trained in Google Colab using Ultralytics' YOLOv8 framework.
 ```bash
 python 2-Deepsort_Tracking/batch_track_and_cut.py
 ```
+
 ### 4. YOLOv8-Pose Keypoint Extraction
 ```bash
 python 3-YOLOv8Pose+LSTM predict/batch_predict.py
 ```
+
 ### 5. Train LSTM
 ```bash
 python 3-YOLOv8Pose+LSTM predict/1-LSTM train.py
 ```
+
 ### 6. Predict Single Video
 ```bash
 python 3-YOLOv8Pose+LSTM predict/2-predict.py
 ```
+
 ---
+
+## 🚀 Inference (End-to-End)
+
+Run end-to-end prediction on a single video using the pretrained models:
+
+```bash
+python inference.py --video path/to/video.mp4
+```
+
+**Required files in root directory:**
+- `LSTM_seq_best.pth` — trained LSTM weights
+- `yolov8n-pose.pt` — YOLOv8-Pose weights (auto-downloaded if missing)
+
+**Arguments:**
+
+| Argument | Default | Description |
+|----------|---------|-------------|
+| `--video` | required | Input video path (.mp4) |
+| `--model` | `LSTM_seq_best.pth` | LSTM model weights path |
+| `--pose` | `yolov8n-pose.pt` | YOLOv8-Pose model path |
+| `--no-video` | False | Disable output video saving |
+| `--save-json` | False | Save prediction result as JSON |
+
+**Output:**
+- Prediction label: `CROSSING` or `NOT CROSSING` with probability
+- Visualized video: `{input_name}_result.mp4` with bounding boxes, keypoints, and prediction overlay
+- (Optional) JSON file with full prediction details
+
+**Examples:**
+```bash
+# Basic inference
+python inference.py --video test_cross.mp4
+
+# Save JSON result, skip video output
+python inference.py --video test_notcross.mp4 --save-json --no-video
+```
+
+**Inference pipeline:**
+```
+Video → YOLOv8-Pose (per-frame keypoint extraction) → Normalization → LSTM classifier → Result + visualization
+```
+
+---
+
 ## Notes
 
-The original dataset (videos) is not included due to size limits.
-
-Example results are provided.
-
-YOLOv8 training was performed on Google Colab, using Ultralytics YOLOv8 framework.
+- The original dataset (videos) is not included due to size limits.
+- Example results and demo videos (`test_cross_result.mp4`, `test_notcross_result.mp4`) are provided.
+- YOLOv8 training was performed on Google Colab using the Ultralytics YOLOv8 framework.

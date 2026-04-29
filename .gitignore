@@ -3,6 +3,8 @@
 */cleaned_data/
 */videos/
 */results*/
+*/results_yolov8pose*/
+*/runs*/
 
 # Python cache
 __pycache__/
